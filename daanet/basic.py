@@ -164,6 +164,7 @@ class RCCore(RCBase):
             [self.pretrained_word_embeddings, self.init_tokens_embeddings, self.pad_tokens_embeddings], axis=0,
             name='word_embeddings')
         self.word_embeddings = tf.nn.dropout(self.word_embeddings, self.ph_dropout_keep_prob)
+
         self.char_emb = get_var('char_embeddings', shape=[self.char_vocab_size, self.args.char_embed_size],
                                 trainable=True)
         self.tokenid_2_charsid_map = tf.get_variable('tokenid_2_charsid_map', dtype=tf.int32,

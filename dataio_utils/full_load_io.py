@@ -23,9 +23,9 @@ class DataIO(base_io.BaseDataIO):
 
     def reset_pointer(self, mode, shuffle=False):
         self.data_pointer[mode] = 0
-        if shuffle:
-            random.shuffle(self.datasets[mode])
-            self.logger.info('%s data is shuffled' % mode.name)
+        # if shuffle:
+        #     random.shuffle(self.datasets[mode])
+        #     self.logger.info('%s data is shuffled' % mode.name)
 
     def next_batch(self, batch_size: int, mode: ModeKeys):
         batch = []

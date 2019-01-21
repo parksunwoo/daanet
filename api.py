@@ -12,6 +12,9 @@ def train(args):
     # check run_mode
     if 'run_mode' in args:
         args.set_hparam('run_mode', ModeKeys.TRAIN.value)
+    logger.info('3'*100)
+    logger.info(args)
+    logger.info('3'*100)
     model = build_model(args)
     try:
         model.restore(use_ema=False, use_partial_loader=False)

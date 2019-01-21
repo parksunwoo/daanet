@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import importlib
 import logging
 import math
@@ -13,7 +15,8 @@ from random import shuffle
 
 import GPUtil
 import tensorflow as tf
-from ruamel.yaml import YAML
+#from ruamel.yaml import YAML
+import yaml
 from ruamel.yaml.comments import CommentedMap
 from tensorflow.contrib.training import HParams
 from tensorflow.python.ops.image_ops_impl import ResizeMethod
@@ -94,7 +97,8 @@ def parse_yaml(yaml_path, model_id):
     hparams.add_hparam('model_id', model_id)
 
     with open(yaml_path) as fp:
-        customized = YAML().load(fp)
+        # customized = YAML().load(fp)
+        customized = yaml.load(fp)
         for k, v in customized.items():
             if k in hparams:
                 hparams.set_hparam(k, v)
@@ -110,15 +114,25 @@ def parse_args(yaml_path, model_id, default_set, followup=None):
     hparams.add_hparam('model_id', model_id)
 
     with open('default.yaml') as fp:
-        configs = YAML().load(fp)
+        # YAML().allow_duplicate_keys = True
+        # configs = YAML().load(fp)
+        # YAML().allow_duplicate_keys = True
+        configs = yaml.load(fp)
+        #configs = YAML().load(fp)
         default_cfg = configs[default_set]
 
         add_param_recur(hparams, default_cfg)
+        #logger.info('1'*100)
+        #logger.info(default_cfg)
 
         if yaml_path:
             logger.info('loading parameters...')
             with open(yaml_path) as fp:
-                customized = YAML().load(fp)
+                # customized = YAML().load(fp)
+                customized = yaml.load(fp)
+                logger.info('2'*100)
+                logger.info(customized)
+                logger.info('2'*100)
                 for k, v in customized.items():
                     if k in hparams and hparams.get(k) != v:
                         logger.info('%20s: %20s -> %20s' % (k, hparams.get(k), v))
@@ -127,28 +141,29 @@ def parse_args(yaml_path, model_id, default_set, followup=None):
                         hparams.add_hparam(k, v)
                         logger.info('%30s %20s: %20s' % ("[add from %s]" % yaml_path, k, hparams.get(k)))
 
-    if followup:
-        # useful when changing args for prediction
-        logger.info('override args with follow-up args...')
-        for k, v in followup.items():
-            if k in hparams and hparams.get(k) != v:
-                logger.info('%20s: %20s -> %20s' % (k, hparams.get(k), v))
-                hparams.set_hparam(k, v)
-            elif k not in hparams:
-                logger.warning('%s is not a valid attribute! ignore!' % k)
-    if 'save_dir' not in hparams:
-        hparams.add_hparam('save_dir', os.path.join(hparams.get('model_dir'), hparams.get('model_id')))
-    if 'code_dir' not in hparams:
-        hparams.add_hparam('code_dir', os.path.join(hparams.get('save_dir'), 'code'))
+    # if followup:
+    #     # useful when changing args for prediction
+    #     logger.info('override args with follow-up args...')
+    #     for k, v in followup.items():
+    #         if k in hparams and hparams.get(k) != v:
+    #             logger.info('%20s: %20s -> %20s' % (k, hparams.get(k), v))
+    #             hparams.set_hparam(k, v)
+    #         elif k not in hparams:
+    #             logger.warning('%s is not a valid attribute! ignore!' % k)
+
+    #if 'save_dir' not in hparams:
+    hparams.add_hparam('save_dir', os.path.join(hparams.get('model_dir'), hparams.get('model_id')))
+    #if 'code_dir' not in hparams:
+    hparams.add_hparam('code_dir', os.path.join(hparams.get('save_dir'), 'code'))
     hparams.set_hparam('summary_dir', os.path.join(hparams.get('save_dir'), 'summary'))
     # reset logger model id
     logger = set_logger(model_id='%s:%s' % (DEVICE_ID, hparams.get('model_id')))
 
-    try:
-        shutil.copytree('./', hparams.get('code_dir'), ignore=shutil.ignore_patterns(*IGNORE_PATTERNS))
-        logger.info('current code base is copied to %s' % hparams.get('save_dir'))
-    except FileExistsError:
-        logger.info('code base exist, no need to copy!')
+    # try:
+    #     shutil.copytree('./', hparams.get('code_dir'), ignore=shutil.ignore_patterns(*IGNORE_PATTERNS))
+    #     logger.info('current code base is copied to %s' % hparams.get('save_dir'))
+    # except FileExistsError:
+    #     logger.info('code base exist, no need to copy!')
 
     # if hparams.get('model_id') != model_id:
     #     logger.warning('model id is changed %s -> %s! '
@@ -189,22 +204,27 @@ def fill_gpu_jobs(all_jobs, logger, job_parser,
         j = all_jobs.pop()
         logger.info('will start the job: %s ...' % job_parser(j))
 
-        try:
-            GPUtil.getFirstAvailable()
-            # check if there is a free GPU!
-            process = subprocess.Popen(job_parser(j), shell=True)
-            all_procs.append((process, j))
-            time.sleep(wait_until_next)
-        except FileNotFoundError:
-            logger.warning('there is no gpu, running on cpu!')
-            process = subprocess.Popen(job_parser(j), shell=True)
-            all_procs.append((process, j))
-        except RuntimeError as e:
-            logger.error(str(e))
-            logger.warning('all gpus are busy! waiting for a free slot...')
-            # add job back
-            all_jobs.append(j)
-            time.sleep(retry_delay)
+        # try:
+        #     GPUtil.getFirstAvailable()
+        #     # check if there is a free GPU!
+        #     process = subprocess.Popen(job_parser(j), shell=True)
+        #     all_procs.append((process, j))
+        #     time.sleep(wait_until_next)
+        # except FileNotFoundError:
+        #     logger.warning('there is no gpu, running on cpu!')
+        #     process = subprocess.Popen(job_parser(j), shell=True)
+        #     all_procs.append((process, j))
+        # except RuntimeError as e:
+        #     logger.error(str(e))
+        #     logger.warning('all gpus are busy! waiting for a free slot...')
+        #     # add job back
+        #     all_jobs.append(j)
+        #     time.sleep(retry_delay)
+
+        # local test용
+        logger.warning('there is no gpu, running on cpu!')
+        process = subprocess.Popen(job_parser(j), shell=True)
+        all_procs.append((process, j))
 
     exit_codes = [(p.wait(), j) for p, j in all_procs]
     return [v for p, v in exit_codes if p != 0]
@@ -312,7 +332,8 @@ def dropout(args, keep_prob, is_train, mode="recurrent"):
 def get_tmp_yaml(par, prefix=None):
     import tempfile
     with tempfile.NamedTemporaryFile('w', delete=False, prefix=prefix) as tmp:
-        YAML().dump(par, tmp)
+        # YAML().dump(par, tmp)
+        yaml.dump(par, tmp)
         return tmp.name
 
 

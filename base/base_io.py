@@ -3,6 +3,9 @@ from typing import List
 
 from dataio_utils.helper import build_vocab
 from gpu_env import APP_NAME, ModeKeys
+import tensorflow as tf
+import json
+import os
 
 
 class BaseDataIO:
@@ -19,8 +22,15 @@ class BaseDataIO:
     def next_batch(self, batch_size: int, mode: ModeKeys):
         raise NotImplementedError
 
-    def load_data(self, file_paths: List[str], mode: ModeKeys):
-        raise NotImplementedError
+    def load_data(self, file_paths: str, mode: ModeKeys):
+        dataset = tf.data.TextLineDataset(file_paths) \
+            .shuffle(5000) \
+            .batch(self.args.batch_size)
+            # .prefetch(self.args.batch_size * 5)
+
+        self.logger.info('loading data for %s' % mode.name)
+
+        return dataset
 
     def make_mini_batch(self, data):
         raise NotImplementedError

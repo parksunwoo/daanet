@@ -8,7 +8,7 @@ initializer_relu = tf.contrib.layers.variance_scaling_initializer(factor=2.0,
                                                                   mode='FAN_IN',
                                                                   uniform=False,
                                                                   dtype=tf.float32)
-regularizer = tf.contrib.layers.l2_regularizer(scale=3e-7)
+regularizer = tf.contrib.layers.l2_regularizer(scale=3e-7, scope=None)
 
 
 def minus_mask(x, mask, offset=1e30):
